@@ -4,6 +4,8 @@
 # License: BSD 3 clause
 
 import numpy as np
+import itertools
+
 
 
 class _OptProb:
@@ -35,6 +37,7 @@ class _OptProb:
         self.state = np.array([0]*self.length)
         self.neighbors = []
         self.fitness_fn = fitness_fn
+        self.fitness_call_counter = itertools.count()
         self.fitness = 0
         self.population = []
         self.pop_fitness = []
@@ -92,6 +95,7 @@ class _OptProb:
             raise Exception("state length must match problem length")
 
         fitness = self.maximize*self.fitness_fn.evaluate(state)
+        next(self.fitness_call_counter)
 
         return fitness
 

@@ -5,6 +5,8 @@
 # License: BSD 3 clause
 
 import numpy as np
+import itertools
+
 
 from mlrose_hiive.decorators import short_name
 
@@ -142,6 +144,7 @@ def genetic_alg(problem, pop_size=200, pop_breed_percent=0.75, elite_dreg_ratio=
         np.random.seed(random_state)
 
     fitness_curve = []
+    fitness_call_count = []
 
     # Initialize problem, population and attempts counter
     problem.reset()
@@ -221,6 +224,7 @@ def genetic_alg(problem, pop_size=200, pop_breed_percent=0.75, elite_dreg_ratio=
 
         if curve:
             fitness_curve.append(problem.get_adjusted_fitness())
+            fitness_call_count.append(problem.fitness_call_counter.__reduce__()[1][0])
 
         # invoke callback
         if state_fitness_callback is not None:
@@ -245,7 +249,8 @@ def genetic_alg(problem, pop_size=200, pop_breed_percent=0.75, elite_dreg_ratio=
     best_fitness = problem.get_maximize()*problem.get_fitness()
     best_state = problem.get_state()
 
+    problem.fitness_call_counter = itertools.count()
     if curve:
-        return best_state, best_fitness, np.asarray(fitness_curve)
+        return best_state, best_fitness, np.asarray(fitness_curve), np.asarray(fitness_call_count)
 
     return best_state, best_fitness, None

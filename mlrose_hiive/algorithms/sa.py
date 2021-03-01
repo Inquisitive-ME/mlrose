@@ -5,6 +5,7 @@
 # License: BSD 3 clause
 
 import numpy as np
+import itertools
 
 from mlrose_hiive.algorithms.decay import GeomDecay
 from mlrose_hiive.decorators import short_name
@@ -89,6 +90,7 @@ def simulated_annealing(problem, schedule=GeomDecay(), max_attempts=10,
                                user_data=callback_user_info)
 
     fitness_curve = []
+    fitness_call_count = []
 
     attempts = 0
     iters = 0
@@ -121,6 +123,8 @@ def simulated_annealing(problem, schedule=GeomDecay(), max_attempts=10,
 
         if curve:
             fitness_curve.append(problem.get_adjusted_fitness())
+            # https://stackoverflow.com/questions/38101507/what-is-the-current-value-of-a-python-itertools-counter
+            fitness_call_count.append(problem.fitness_call_counter.__reduce__()[1][0])
 
         # invoke callback
         if state_fitness_callback is not None:
@@ -140,7 +144,8 @@ def simulated_annealing(problem, schedule=GeomDecay(), max_attempts=10,
     best_fitness = problem.get_maximize()*problem.get_fitness()
     best_state = problem.get_state()
 
+    problem.fitness_call_counter = itertools.count()
     if curve:
-        return best_state, best_fitness, np.asarray(fitness_curve)
+        return best_state, best_fitness, np.asarray(fitness_curve), np.asarray(fitness_call_count)
 
     return best_state, best_fitness, None

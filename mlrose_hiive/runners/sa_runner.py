@@ -31,10 +31,10 @@ class SARunner(_RunnerBase):
                          **kwargs)
         self.temperature_list = temperature_list
         if decay_list is None:
-            decay_list = [mlrose_hiive.GeomDecay]
+            decay_list = [0.005]
         self.decay_list = decay_list
 
     def run(self):
-        temperatures = [decay(init_temp=t) for t in self.temperature_list for decay in self.decay_list]
+        temperatures = [mlrose_hiive.ExpDecay(init_temp=t, exp_const=decay) for t in self.temperature_list for decay in self.decay_list]
         return super().run_experiment_(algorithm=mlrose_hiive.simulated_annealing,
                                        schedule=('Temperature', temperatures))
