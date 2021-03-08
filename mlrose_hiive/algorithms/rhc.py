@@ -5,6 +5,7 @@
 # License: BSD 3 clause
 
 import numpy as np
+import itertools
 
 from mlrose_hiive.decorators import short_name
 
@@ -80,8 +81,12 @@ def random_hill_climb(problem, max_attempts=10, max_iters=np.inf, restarts=0,
     best_fitness = -np.inf
     best_state = None
 
+    best_fitness_call_count = []
     best_fitness_curve = []
     all_curves = []
+
+    fitness_curve = []
+    fitness_call_count = []
 
     continue_iterating = True
     for current_restart in range(restarts + 1):
@@ -91,15 +96,20 @@ def random_hill_climb(problem, max_attempts=10, max_iters=np.inf, restarts=0,
         else:
             problem.set_state(init_state)
 
-        fitness_curve = []
-        callback_extra_data = None
+
         if state_fitness_callback is not None:
-            callback_extra_data = callback_user_info + [('current_restart', current_restart)]
+            if type(callback_user_info) == dict:
+                if 'current_restart' in callback_user_info.keys():
+                    callback_user_info['current_restart'].append(current_restart)
+                else:
+                    callback_user_info['current_restart'] = [current_restart]
+            else:
+                callback_user_info = callback_user_info + [('current_restart', current_restart)]
             # initial call with base data
             state_fitness_callback(iteration=0,
                                    state=problem.get_state(),
                                    fitness=problem.get_adjusted_fitness(),
-                                   user_data=callback_extra_data)
+                                   user_data=callback_user_info)
 
         attempts = 0
         iters = 0
@@ -122,6 +132,7 @@ def random_hill_climb(problem, max_attempts=10, max_iters=np.inf, restarts=0,
             if curve:
                 adjusted_fitness = problem.get_adjusted_fitness()
                 fitness_curve.append(adjusted_fitness)
+                fitness_call_count.append(problem.fitness_call_counter.__reduce__()[1][0])
                 all_curves.append({'current_restart': current_restart, 'Fitness': problem.get_adjusted_fitness()})
 
             # invoke callback
@@ -133,7 +144,7 @@ def random_hill_climb(problem, max_attempts=10, max_iters=np.inf, restarts=0,
                                                             state=problem.get_state(),
                                                             fitness=problem.get_adjusted_fitness(),
                                                             curve=np.asarray(all_curves) if curve else None,
-                                                            user_data=callback_extra_data)
+                                                            user_data=callback_user_info)
                 # break out if requested
                 if not continue_iterating:
                     break
@@ -145,12 +156,14 @@ def random_hill_climb(problem, max_attempts=10, max_iters=np.inf, restarts=0,
             best_state = problem.get_state()
             if curve:
                 best_fitness_curve = [*fitness_curve]
+                best_fitness_call_count = [*fitness_call_count]
 
         # break out if we can stop
         if problem.can_stop():
             break
     best_fitness *= problem.get_maximize()
+    problem.fitness_call_counter = itertools.count()
     if curve:
-        return best_state, best_fitness, np.asarray(best_fitness_curve)
+        return best_state, best_fitness, np.asarray(fitness_curve), np.asarray(fitness_call_count)
 
     return best_state, best_fitness, None

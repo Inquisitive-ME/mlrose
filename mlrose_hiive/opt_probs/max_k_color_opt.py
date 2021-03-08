@@ -14,7 +14,7 @@ import networkx as nx
 
 
 class MaxKColorOpt(DiscreteOpt):
-    def __init__(self, edges=None, length=None, fitness_fn=None, maximize=False,
+    def __init__(self, edges=None, length=None, fitness_fn=None, maximize=True,
                  max_colors=None, crossover=None, mutator=None):
 
         if (fitness_fn is None) and (edges is None):

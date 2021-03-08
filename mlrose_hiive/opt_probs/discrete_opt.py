@@ -12,6 +12,7 @@ from mlrose_hiive.algorithms.crossovers import UniformCrossOver
 from mlrose_hiive.algorithms.mutators import SwapMutator
 from mlrose_hiive.opt_probs._opt_prob import _OptProb
 
+import itertools
 
 class DiscreteOpt(_OptProb):
     """Class for defining discrete-state optimization problems.
@@ -397,6 +398,7 @@ class DiscreteOpt(_OptProb):
         """
         self.state = self.random()
         self.fitness = self.eval_fitness(self.state)
+        self.fitness_call_counter = itertools.count()
 
     def sample_pop(self, sample_size):
         """Generate new sample from probability density.
